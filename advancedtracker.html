@@ -1,0 +1,1078 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Completion Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --card-bg: rgba(20, 20, 20, 0.95);
+            --text-primary: #e0e0e0;
+            --text-secondary: #ffffff;
+            --accent: #4caf50;
+            --accent-info: #2196f3;
+            --accent-warn: #ff9800;
+            --border: rgba(255, 255, 255, 0.08);
+            --radius: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    /* Replace with your image */
+    background: url("https://aiartshop.com/cdn/shop/files/QraEq19ZBT_1200x1200.jpg?v=1726228069") no-repeat center center fixed;
+    background-size: cover;
+  }
+
+  /* Wrap all your main content in a container with this class */
+  .overlay-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;   /* center horizontally */
+    align-items: center;       /* center vertically */
+  }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+            letter-spacing: 0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-bottom: 20px;
+        }
+
+        .top-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        select, input[type="number"], input[type="time"] {
+            padding: 8px 10px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: #111;
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        button {
+            padding: 8px 14px;
+            border-radius: var(--radius);
+            border: none;
+            background: #333;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.15s;
+        }
+
+        button:hover {
+            background: #444;
+        }
+
+        button.primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        button.primary:hover {
+            background: #45a049;
+        }
+
+        button.danger {
+            background: #d32f2f;
+        }
+
+        button.danger:hover {
+            background: #b71c1c;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            margin: 0 0 12px;
+            font-weight: 600;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .metric-box {
+            background: rgba(76, 175, 80, 0.08);
+            border: 1px solid rgba(76, 175, 80, 0.2);
+            border-radius: var(--radius);
+            padding: 12px;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .metric-sub {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th {
+            background: #078909;
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            color: lightgrey;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.06em;
+        }
+
+        td {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            color: #e0e0e0;
+        }
+
+        tbody tr:hover {
+            background: rgba(27, 58, 0, 0.827);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 12px;
+        }
+
+        .file-input {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .time-period {
+            font-size: 11px;
+            padding: 3px 6px;
+            background: rgba(33, 150, 243, 0.15);
+            border-radius: 4px;
+            color: #64b5f6;
+            display: inline-block;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 93, 15, 0.8);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 18px;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        @media (max-width: 1000px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .grid-4 {
+                grid-template-columns: 1fr;
+            }
+            .top-controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+<table>
+<td><div class="card">
+    <h1>Weekly Completion Tracker</h1>
+    <div class="subtitle">Track hourly progress with time-of-day analytics and weekly exports</div>
+</div>
+    <div class="top-controls">
+        <div class="control-group">
+            <label style="font-size:12px; color:var(--text-secondary);">Timezone</label>
+            <select id="timezoneSelect">
+                <option value="local">Local Time</option>
+                <option value="America/New_York">EST</option>
+                <option value="America/Chicago">CST</option>
+                <option value="America/Denver">MST</option>
+                <option value="America/Los_Angeles">PST</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label style="font-size:12px; color:var(--text-secondary);">Weekly Target</label>
+            <input id="weeklyTargetInput" type="number" value="44100" style="width:100px;">
+        </div>
+        <button class="primary" id="addCheckpointBtn">Add Checkpoint</button>
+        <button id="showDailyStatsBtn">Daily Stats</button>
+        <button id="exportWeeklyBtn">Export Weekly CSV</button>
+        <div class="file-input">
+            <button id="importWeeklyBtn">Import Weekly CSV</button>
+            <input type="file" id="importFile" accept=".csv">
+        </div>
+        <button id="resetBtn" class="danger">Reset</button>
+    </div></td>
+</table>
+    <!-- Current Session Summary -->
+    <div class="card">
+        <h3 class="section-title">Current Session</h3>
+        <div class="grid-4">
+            <div class="metric-box">
+                <div class="metric-label">Completed</div>
+                <div class="metric-value" id="completedValue">0</div>
+                <div class="metric-sub">of <span id="targetValue">44100</span></div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Session Avg (hrs/hr)</div>
+                <div class="metric-value" id="sessionAvgValue">0</div>
+                <div class="metric-sub" id="completionPctValue">0%</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Current Speed (hrs/hr)</div>
+                <div class="metric-value" id="currentSpeedValue">0</div>
+                <div class="metric-sub">Last interval</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Finish (Est.)</div>
+                <div class="metric-value" id="finishTimeValue">--</div>
+                <div class="metric-sub" id="finishRateValue">--</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time-of-Day Analytics -->
+    <div class="card">
+        <h3 class="section-title">Time-of-Day Performance (Today)</h3>
+        <div class="grid-4">
+            <div class="metric-box">
+                <div class="metric-label">Morning (6am-12pm)</div>
+                <div class="metric-value" id="morningRate">--</div>
+                <div class="metric-sub" id="morningCount">0 entries</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Afternoon (12pm-6pm)</div>
+                <div class="metric-value" id="afternoonRate">--</div>
+                <div class="metric-sub" id="afternoonCount">0 entries</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Evening (6pm-12am)</div>
+                <div class="metric-value" id="eveningRate">--</div>
+                <div class="metric-sub" id="eveningCount">0 entries</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">Night (12am-6am)</div>
+                <div class="metric-value" id="nightRate">--</div>
+                <div class="metric-sub" id="nightCount">0 entries</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid-2">
+        <div class="card">
+            <h3 class="section-title">Speed Over Time</h3>
+            <div class="chart-container">
+                <canvas id="speedChart"></canvas>
+            </div>
+        </div>
+        <div class="card">
+            <h3 class="section-title">Progress vs Target</h3>
+            <div class="chart-container">
+                <canvas id="burnupChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Table -->
+    <div class="card">
+        <h3 class="section-title">Checkpoint History</h3>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Completed</th>
+                        <th>Δ Hours</th>
+                        <th>Speed (hrs/hr)</th>
+                        <th>Period</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Daily Stats Modal -->
+    <div id="dailyStatsModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeDailyStats()">&times;</button>
+            <div class="modal-header">Daily Statistics by Time Period</div>
+            <div id="dailyStatsContent"></div>
+        </div>
+    </div>
+
+    <!-- Add Checkpoint Modal -->
+    <div id="addCheckpointModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeAddCheckpoint()">&times;</button>
+            <div class="modal-header">Add Checkpoint</div>
+            <div style="display: grid; gap: 12px;">
+                <div>
+                    <label style="font-size:12px; color:var(--text-secondary);">Date & Time</label>
+                    <input id="checkpointDateTime" type="datetime-local">
+                </div>
+                <div>
+                    <label style="font-size:12px; color:var(--text-secondary);">Completed Hours (e.g. 30211:16 or 30211.16)</label>
+                    <input id="checkpointValue" placeholder="30211:16">
+                </div>
+                <div>
+                    <label style="font-size:12px; color:var(--text-secondary);">Notes (optional)</label>
+                    <input id="checkpointNote" placeholder="e.g. Break taken, focused session...">
+                </div>
+                <button class="primary" onclick="saveCheckpoint()" style="width:100%;">Save</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const STORAGE_KEY = "weekly_tracker_v2";
+    const DAILY_STORAGE_PREFIX = "daily_stats_";
+
+    let checkpoints = [];
+    let timezone = "local";
+    let weeklyTarget = 118800;
+    let speedChart = null;
+    let burnupChart = null;
+
+    // === UTILITY FUNCTIONS ===
+
+    function parseCheckpointString(str) {
+        if (!str) return NaN;
+        str = String(str).trim();
+        if (str.includes(":")) {
+            const [main, frac] = str.split(":");
+            const base = parseFloat(main.replace(/,/g, ""));
+            const fracNum = parseFloat(frac.replace(/,/g, ""));
+            if (isNaN(base) || isNaN(fracNum)) return NaN;
+            return base + fracNum / 100;
+        } else {
+            return parseFloat(str.replace(/,/g, ""));
+        }
+    }
+
+    function formatDateTime(date) {
+        if (!date) return "--";
+        const opts = {
+            month: "2-digit",
+            day: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+            timeZone: timezone === "local" ? undefined : timezone
+        };
+        return new Intl.DateTimeFormat(undefined, opts).format(date);
+    }
+
+    function formatDate(date) {
+        if (!date) return "--";
+        const opts = {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            timeZone: timezone === "local" ? undefined : timezone
+        };
+        return new Intl.DateTimeFormat(undefined, opts).format(date);
+    }
+
+    function formatTime(date) {
+        if (!date) return "--:--";
+        const opts = {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+            timeZone: timezone === "local" ? undefined : timezone
+        };
+        return new Intl.DateTimeFormat(undefined, opts).format(date);
+    }
+
+    function getTimePeriod(date) {
+        const hour = date.getHours();
+        if (hour >= 6 && hour < 12) return "Morning";
+        if (hour >= 12 && hour < 18) return "Afternoon";
+        if (hour >= 18 && hour < 24) return "Evening";
+        return "Night";
+    }
+
+    function getDateKey(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, "0");
+        const d = String(date.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+    }
+
+    // === STORAGE & STATE ===
+
+    function saveState() {
+        const data = {
+            checkpoints: checkpoints.map(p => ({
+                ...p,
+                timestamp: p.timestamp.toISOString()
+            })),
+            timezone,
+            weeklyTarget
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function loadState() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        try {
+            const data = JSON.parse(raw);
+            timezone = data.timezone || "local";
+            weeklyTarget = data.weeklyTarget || 44100;
+            checkpoints = (data.checkpoints || []).map(p => ({
+                ...p,
+                timestamp: new Date(p.timestamp)
+            }));
+            checkpoints.sort((a, b) => a.timestamp - b.timestamp);
+        } catch (e) {
+            console.error("Load failed", e);
+        }
+    }
+
+    function getDailyStats(date) {
+        const key = getDateKey(date);
+        const raw = localStorage.getItem(DAILY_STORAGE_PREFIX + key);
+        if (!raw) return null;
+        try {
+            return JSON.parse(raw);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function saveDailyStats(date, stats) {
+        const key = getDateKey(date);
+        localStorage.setItem(DAILY_STORAGE_PREFIX + key, JSON.stringify(stats));
+    }
+
+    // === TIME-OF-DAY ANALYTICS ===
+
+    function computeTimeOfDayStats() {
+        const today = new Date();
+        const todayKey = getDateKey(today);
+        const periods = {
+            Morning: { rate: null, count: 0, speeds: [] },
+            Afternoon: { rate: null, count: 0, speeds: [] },
+            Evening: { rate: null, count: 0, speeds: [] },
+            Night: { rate: null, count: 0, speeds: [] }
+        };
+
+        for (let i = 0; i < checkpoints.length; i++) {
+            const cp = checkpoints[i];
+            if (getDateKey(cp.timestamp) !== todayKey) continue;
+            if (i === 0) continue;
+
+            const period = getTimePeriod(cp.timestamp);
+            const prev = checkpoints[i - 1];
+            const dVal = cp.val - prev.val;
+            const dTimeH = (cp.timestamp - prev.timestamp) / 3600000;
+            if (dTimeH > 0) {
+                const speed = dVal / dTimeH;
+                periods[period].speeds.push(speed);
+                periods[period].count++;
+            }
+        }
+
+        for (const period in periods) {
+            if (periods[period].speeds.length > 0) {
+                const avg = periods[period].speeds.reduce((a, b) => a + b, 0) / periods[period].speeds.length;
+                periods[period].rate = avg;
+            }
+        }
+
+        return periods;
+    }
+
+    function updateTimeOfDayDisplay() {
+        const stats = computeTimeOfDayStats();
+
+        const periods = ["Morning", "Afternoon", "Evening", "Night"];
+        periods.forEach(p => {
+            const rateEl = document.getElementById(p.toLowerCase() + "Rate");
+            const countEl = document.getElementById(p.toLowerCase() + "Count");
+            if (stats[p].rate !== null) {
+                rateEl.innerText = stats[p].rate.toFixed(0) + " hrs/hr";
+                countEl.innerText = stats[p].count + " entries";
+            } else {
+                rateEl.innerText = "--";
+                countEl.innerText = "0 entries";
+            }
+        });
+    }
+
+    // === CHECKPOINT MANAGEMENT ===
+
+    function openAddCheckpoint() {
+        const now = new Date();
+        const isoStr = now.toISOString().slice(0, 16);
+        document.getElementById("checkpointDateTime").value = isoStr;
+        document.getElementById("checkpointValue").value = "";
+        document.getElementById("checkpointNote").value = "";
+        document.getElementById("addCheckpointModal").classList.add("open");
+    }
+
+    function closeAddCheckpoint() {
+        document.getElementById("addCheckpointModal").classList.remove("open");
+    }
+
+    function saveCheckpoint() {
+        const dtStr = document.getElementById("checkpointDateTime").value;
+        const valStr = document.getElementById("checkpointValue").value;
+        const noteStr = document.getElementById("checkpointNote").value;
+
+        if (!dtStr || !valStr) {
+            alert("Please fill in date/time and value");
+            return;
+        }
+
+        const dt = new Date(dtStr);
+        const val = parseCheckpointString(valStr);
+        if (isNaN(val)) {
+            alert("Invalid checkpoint value");
+            return;
+        }
+
+        const id = checkpoints.length ? checkpoints[checkpoints.length - 1].id + 1 : 1;
+        checkpoints.push({
+            id,
+            timestamp: dt,
+            val,
+            note: noteStr
+        });
+        checkpoints.sort((a, b) => a.timestamp - b.timestamp);
+
+        saveState();
+        closeAddCheckpoint();
+        update();
+    }
+
+    function deleteCheckpoint(id) {
+        if (!confirm("Delete checkpoint?")) return;
+        checkpoints = checkpoints.filter(p => p.id !== id);
+        saveState();
+        update();
+    }
+
+    // === CHARTS ===
+
+    function initCharts() {
+        const ctx1 = document.getElementById("speedChart").getContext("2d");
+        const ctx2 = document.getElementById("burnupChart").getContext("2d");
+
+        speedChart = new Chart(ctx1, {
+            type: "line",
+            data: {
+                labels: [],
+                datasets: [{
+                    label: "Speed (hrs/hr)",
+                    data: [],
+                    borderColor: "#4caf50",
+                    backgroundColor: "rgba(76, 175, 80, 0.1)",
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 3,
+                    pointHoverRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { ticks: { color: "#999" } },
+                    y: { ticks: { color: "#999" } }
+                }
+            }
+        });
+
+        burnupChart = new Chart(ctx2, {
+            type: "line",
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: "Completed",
+                        data: [],
+                        borderColor: "#2196f3",
+                        backgroundColor: "rgba(33, 150, 243, 0.1)",
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 2
+                    },
+                    {
+                        label: "Target",
+                        data: [],
+                        borderColor: "#f44336",
+                        borderDash: [5, 5],
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true }
+                },
+                scales: {
+                    x: { ticks: { color: "#999" } },
+                    y: { ticks: { color: "#999" } }
+                }
+            }
+        });
+    }
+
+    function updateCharts() {
+        const labels = checkpoints.map(p => formatTime(p.timestamp));
+        const speeds = [];
+        const totals = [];
+        const targetLine = [];
+
+        for (let i = 0; i < checkpoints.length; i++) {
+            totals.push(checkpoints[i].val);
+            targetLine.push(weeklyTarget);
+            if (i === 0) {
+                speeds.push(0);
+            } else {
+                const dVal = checkpoints[i].val - checkpoints[i - 1].val;
+                const dTimeH = (checkpoints[i].timestamp - checkpoints[i - 1].timestamp) / 3600000;
+                speeds.push(dTimeH > 0 ? dVal / dTimeH : 0);
+            }
+        }
+
+        speedChart.data.labels = labels;
+        speedChart.data.datasets[0].data = speeds;
+        speedChart.update();
+
+        burnupChart.data.labels = labels;
+        burnupChart.data.datasets[0].data = totals;
+        burnupChart.data.datasets[1].data = targetLine;
+        burnupChart.update();
+    }
+
+    // === SUMMARY DISPLAY ===
+
+    function updateSummary() {
+        if (checkpoints.length === 0) {
+            document.getElementById("completedValue").innerText = "0";
+            document.getElementById("sessionAvgValue").innerText = "0";
+            document.getElementById("currentSpeedValue").innerText = "0";
+            document.getElementById("finishTimeValue").innerText = "--";
+            document.getElementById("finishRateValue").innerText = "--";
+            document.getElementById("completionPctValue").innerText = "0%";
+            return;
+        }
+
+        const first = checkpoints[0];
+        const last = checkpoints[checkpoints.length - 1];
+        const completed = last.val;
+
+        document.getElementById("completedValue").innerText = completed.toLocaleString();
+        document.getElementById("targetValue").innerText = weeklyTarget.toLocaleString();
+
+        const pct = weeklyTarget > 0 ? (completed / weeklyTarget) * 100 : 0;
+        document.getElementById("completionPctValue").innerText = pct.toFixed(1) + "%";
+
+        const elapsedMs = last.timestamp - first.timestamp;
+        const elapsedH = elapsedMs / 3600000;
+        let avgSpeed = 0;
+        if (elapsedH > 0) {
+            avgSpeed = (last.val - first.val) / elapsedH;
+        }
+        document.getElementById("sessionAvgValue").innerText = avgSpeed.toFixed(0);
+
+        let currentSpeed = 0;
+        if (checkpoints.length >= 2) {
+            const prev = checkpoints[checkpoints.length - 2];
+            const dVal = last.val - prev.val;
+            const dTimeH = (last.timestamp - prev.timestamp) / 3600000;
+            currentSpeed = dTimeH > 0 ? dVal / dTimeH : 0;
+        }
+        document.getElementById("currentSpeedValue").innerText = currentSpeed.toFixed(0);
+
+        const remaining = Math.max(weeklyTarget - completed, 0);
+        let finishEstimate = null;
+        if (avgSpeed > 0) {
+            const hoursNeeded = remaining / avgSpeed;
+            const msNeeded = hoursNeeded * 3600000;
+            finishEstimate = new Date(last.timestamp.getTime() + msNeeded);
+        }
+
+        if (finishEstimate) {
+            const dateStr = formatDate(finishEstimate);
+            const timeStr = formatTime(finishEstimate);
+            document.getElementById("finishTimeValue").innerText = dateStr;
+            document.getElementById("finishRateValue").innerText = timeStr + " @ " + avgSpeed.toFixed(0) + " hrs/hr";
+        } else {
+            document.getElementById("finishTimeValue").innerText = "--";
+            document.getElementById("finishRateValue").innerText = "--";
+        }
+    }
+
+    function renderHistory() {
+        const body = document.getElementById("historyBody");
+        body.innerHTML = "";
+        checkpoints.forEach((cp, idx) => {
+            const tr = document.createElement("tr");
+            const prev = idx > 0 ? checkpoints[idx - 1] : null;
+            let dVal = prev ? cp.val - prev.val : 0;
+            let dTimeMs = prev ? cp.timestamp - prev.timestamp : 0;
+            let dTimeH = dTimeMs / 3600000;
+            let speed = dTimeH > 0 ? dVal / dTimeH : 0;
+            const period = getTimePeriod(cp.timestamp);
+
+            tr.innerHTML = `
+                <td>${formatDateTime(cp.timestamp)}</td>
+                <td>${cp.val.toLocaleString()}</td>
+                <td>${prev ? dVal.toFixed(2) : "--"}</td>
+                <td>${prev && dTimeMs > 0 ? speed.toFixed(0) : "--"}</td>
+                <td><span class="time-period">${period}</span></td>
+                <td><button onclick="deleteCheckpoint(${cp.id})" style="padding:4px 8px; font-size:11px;">Delete</button></td>
+            `;
+            body.appendChild(tr);
+        });
+    }
+
+    // === EXPORT / IMPORT ===
+
+    function exportWeeklyCSV() {
+        if (checkpoints.length === 0) {
+            alert("No data to export");
+            return;
+        }
+
+        // Group by date
+        const byDate = {};
+        checkpoints.forEach(cp => {
+            const dateKey = getDateKey(cp.timestamp);
+            if (!byDate[dateKey]) byDate[dateKey] = [];
+            byDate[dateKey].push(cp);
+        });
+
+        let csv = "Date,Time,Completed,Period,Note\n";
+        Object.keys(byDate).sort().forEach(dateKey => {
+            const dayPoints = byDate[dateKey];
+            dayPoints.forEach(cp => {
+                const dateStr = formatDate(cp.timestamp);
+                const timeStr = formatTime(cp.timestamp);
+                const period = getTimePeriod(cp.timestamp);
+                const note = (cp.note || "").replace(/"/g, '""');
+                csv += `"${dateStr}","${timeStr}",${cp.val},"${period}","${note}"\n`;
+            });
+        });
+
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "weekly_tracker_" + new Date().toISOString().split("T")[0] + ".csv";
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+
+    function importWeeklyCSV(file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const text = e.target.result;
+            const lines = text.split(/\r?\n/);
+            if (!lines.length) return;
+
+            const imported = [];
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                const parts = parseCSVLine(line);
+                if (parts.length < 3) continue;
+
+                const dateStr = parts[0];
+                const timeStr = parts[1];
+                const completedStr = parts[2];
+                const periodStr = parts[3] || "";
+                const noteStr = parts[4] || "";
+
+                let ts = new Date(dateStr + " " + timeStr);
+                if (isNaN(ts.getTime())) continue;
+
+                const completedVal = parseFloat(completedStr);
+                if (isNaN(completedVal)) continue;
+
+                imported.push({
+                    timestamp: ts,
+                    val: completedVal,
+                    note: noteStr
+                });
+            }
+
+            imported.sort((a, b) => a.timestamp - b.timestamp);
+            checkpoints = imported.map((p, idx) => ({
+                ...p,
+                id: idx + 1
+            }));
+
+            saveState();
+            update();
+            alert("Imported " + checkpoints.length + " checkpoints");
+        };
+        reader.readAsText(file);
+    }
+
+    function parseCSVLine(line) {
+        const result = [];
+        let current = "";
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const c = line[i];
+            if (c === '"') {
+                inQuotes = !inQuotes;
+            } else if (c === "," && !inQuotes) {
+                result.push(current);
+                current = "";
+            } else {
+                current += c;
+            }
+        }
+        result.push(current);
+        return result.map(x => x.replace(/^"|"$/g, ""));
+    }
+
+    // === DAILY STATS MODAL ===
+
+    function openDailyStats() {
+        const byDate = {};
+        checkpoints.forEach(cp => {
+            const dateKey = getDateKey(cp.timestamp);
+            if (!byDate[dateKey]) byDate[dateKey] = [];
+            byDate[dateKey].push(cp);
+        });
+
+        let html = "";
+        Object.keys(byDate).sort().reverse().forEach(dateKey => {
+            const dayPoints = byDate[dateKey];
+            const dateStr = formatDate(dayPoints[0].timestamp);
+            const periods = { Morning: [], Afternoon: [], Evening: [], Night: [] };
+            dayPoints.forEach(cp => {
+                const period = getTimePeriod(cp.timestamp);
+                periods[period].push(cp);
+            });
+
+            html += `<div style="margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.1);">`;
+            html += `<h4 style="margin:0 0 12px; font-size:14px;">${dateStr}</h4>`;
+            html += `<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px;">`;
+
+            ["Morning", "Afternoon", "Evening", "Night"].forEach(period => {
+                const points = periods[period];
+                if (points.length === 0) {
+                    html += `<div style="padding:8px; background:rgba(255,255,255,0.03); border-radius:4px; font-size:12px; color:#666;">`;
+                    html += `<strong>${period}</strong>: No data`;
+                    html += `</div>`;
+                    return;
+                }
+
+                let totalDelta = 0;
+                let totalTimeH = 0;
+                for (let i = 0; i < points.length; i++) {
+                    if (i === 0) continue;
+                    totalDelta += points[i].val - points[i - 1].val;
+                    totalTimeH += (points[i].timestamp - points[i - 1].timestamp) / 3600000;
+                }
+
+                const avgSpeed = totalTimeH > 0 ? totalDelta / totalTimeH : 0;
+                html += `<div style="padding:8px; background:rgba(76,175,80,0.1); border:1px solid rgba(76,175,80,0.2); border-radius:4px; font-size:12px;">`;
+                html += `<strong>${period}</strong>: ${avgSpeed.toFixed(0)} hrs/hr (${points.length} entries)`;
+                html += `</div>`;
+            });
+
+            html += `</div></div>`;
+        });
+
+        document.getElementById("dailyStatsContent").innerHTML = html || "<p>No data yet</p>";
+        document.getElementById("dailyStatsModal").classList.add("open");
+    }
+
+    function closeDailyStats() {
+        document.getElementById("dailyStatsModal").classList.remove("open");
+    }
+
+    // === MAIN UPDATE ===
+
+    function update() {
+        updateSummary();
+        renderHistory();
+        updateCharts();
+        updateTimeOfDayDisplay();
+    }
+
+    // === INIT ===
+
+    window.addEventListener("load", () => {
+        loadState();
+        document.getElementById("timezoneSelect").value = timezone;
+        document.getElementById("weeklyTargetInput").value = weeklyTarget;
+
+        initCharts();
+        update();
+
+        document.getElementById("addCheckpointBtn").addEventListener("click", openAddCheckpoint);
+        document.getElementById("showDailyStatsBtn").addEventListener("click", openDailyStats);
+        document.getElementById("exportWeeklyBtn").addEventListener("click", exportWeeklyCSV);
+        document.getElementById("resetBtn").addEventListener("click", () => {
+            if (confirm("Clear all data?")) {
+                checkpoints = [];
+                saveState();
+                update();
+            }
+        });
+        document.getElementById("importFile").addEventListener("change", e => {
+            const file = e.target.files[0];
+            if (file) importWeeklyCSV(file);
+            e.target.value = "";
+        });
+        document.getElementById("timezoneSelect").addEventListener("change", e => {
+            timezone = e.target.value;
+            saveState();
+            update();
+        });
+        document.getElementById("weeklyTargetInput").addEventListener("change", e => {
+            weeklyTarget = parseFloat(e.target.value) || 44100;
+            saveState();
+            update();
+        });
+
+        // Close modals on outside click
+        document.getElementById("addCheckpointModal").addEventListener("click", e => {
+            if (e.target.id === "addCheckpointModal") closeAddCheckpoint();
+        });
+        document.getElementById("dailyStatsModal").addEventListener("click", e => {
+            if (e.target.id === "dailyStatsModal") closeDailyStats();
+        });
+    });
+</script>
+
+</body>
+</html>
