@@ -626,14 +626,18 @@
     // === CHECKPOINT MANAGEMENT ===
 
     function openAddCheckpoint() {
-        const now = new Date();
-        const isoStr = now.toISOString().slice(0, 16);
-        document.getElementById("checkpointDateTime").value = isoStr;
-        document.getElementById("checkpointValue").value = "";
-        document.getElementById("checkpointNote").value = "";
-        document.getElementById("addCheckpointModal").classList.add("open");
-    }
-
+const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const isoStr = `${year}-${month}-${day}T${hours}:${minutes}`;
+  
+  document.getElementById("checkpointDateTime").value = isoStr;
+  document.getElementById("checkpointValue").value = "";
+  document.getElementById("checkpointNote").value = "";
+  document.getElementById("addCheckpointModal").classList.add("open");
     function closeAddCheckpoint() {
         document.getElementById("addCheckpointModal").classList.remove("open");
     }
@@ -1076,3 +1080,4 @@
 
 </body>
 </html>
+
