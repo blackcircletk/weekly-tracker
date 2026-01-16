@@ -116,63 +116,128 @@
         </div>
     </div>
 
-    <script>
+    <!-- Firebase SDKs -->
+    <script type="module">
+        // Import Firebase modules from CDN (modular v9+ style)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import {
+            getFirestore,
+            collection,
+            addDoc,
+            serverTimestamp,
+            query,
+            orderBy,
+            limit,
+            onSnapshot
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        // TODO: replace with your Firebase config
+        // Get it from Firebase console: Project settings -> General -> Your apps
+const firebaseConfig = {
+  apiKey: "AIzaSyDWwHnwrF8rWGU3TmeZSq48kpyTaoY5MSc",
+  authDomain: "chat-fd7ed.firebaseapp.com",
+  projectId: "chat-fd7ed",
+  storageBucket: "chat-fd7ed.firebasestorage.app",
+  messagingSenderId: "865300434822",
+  appId: "1:865300434822:web:dbb3de4703b77cbfa5a607",
+  measurementId: "G-S9DHMFP1E0"
+};
+        
+        // Init Firebase + Firestore
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         const chatMessages = document.getElementById('chatMessages');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
 
-        function addMessage(text, username) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message';
+        // Username persistence per browser
+        function getUsername() {
+            let username = localStorage.getItem('weekly_chat_username');
+            if (!username) {
+                username = prompt('Choose a username:') || 'Anonymous';
+                username = username.trim() || 'Anonymous';
+                localStorage.setItem('weekly_chat_username', username);
+            }
+            return username;
+        }
 
-            const initials = username
+        function initialsFromName(name) {
+            return name
                 .split(' ')
                 .map(p => p[0]?.toUpperCase())
                 .join('')
                 .slice(0, 2) || '?';
+        }
 
-            const time = new Date().toLocaleTimeString([], {
+        function renderMessage(doc) {
+            const data = doc.data();
+            const username = data.username || 'Anonymous';
+            const text = data.text || '';
+            const ts = data.timestamp?.toDate
+                ? data.timestamp.toDate()
+                : new Date();
+
+            const timeStr = ts.toLocaleTimeString([], {
                 hour: '2-digit',
                 minute: '2-digit'
             });
 
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+
             messageDiv.innerHTML = `
-                <div class="avatar">${initials}</div>
+                <div class="avatar">${initialsFromName(username)}</div>
                 <div class="message-bubble">
                     <div class="message-username">${username}</div>
                     <div>${text}</div>
-                    <div class="message-time">${time}</div>
+                    <div class="message-time">${timeStr}</div>
                 </div>
             `;
 
             chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const text = messageInput.value.trim();
             if (!text) return;
 
-            const username = prompt('Enter your username for this message:');
-            if (!username || !username.trim()) {
-                return; // Cancel send if no username
-            }
+            const username = getUsername();
 
-            addMessage(text, username.trim());
-            messageInput.value = '';
-            messageInput.focus();
+            try {
+                await addDoc(collection(db, "messages"), {
+                    text,
+                    username,
+                    timestamp: serverTimestamp()
+                });
+                messageInput.value = '';
+                messageInput.focus();
+            } catch (e) {
+                alert("Failed to send message. Check console.");
+                console.error(e);
+            }
         }
 
+        // Event handlers
         sendButton.addEventListener('click', sendMessage);
-
         messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 sendMessage();
             }
         });
 
-        // Optional welcome message
-        addMessage('Welcome! Anyone can post here. Each message is signed with a username you enter.', 'System');
+        // Listen to last 100 messages ordered by timestamp
+        const q = query(
+            collection(db, "messages"),
+            orderBy("timestamp", "asc"),
+            limit(100)
+        );
+
+        onSnapshot(q, (snapshot) => {
+            chatMessages.innerHTML = '';
+            snapshot.forEach(renderMessage);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
     </script>
 </body>
 </html>
