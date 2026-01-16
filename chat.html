@@ -39,9 +39,6 @@
             display: flex;
             align-items: flex-end;
         }
-        .message.own {
-            flex-direction: row-reverse;
-        }
         .avatar {
             width: 40px;
             height: 40px;
@@ -52,128 +49,10 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            margin: 0 10px;
+            margin: 0 10px 0 0;
             flex-shrink: 0;
         }
         .message-bubble {
             max-width: 70%;
             padding: 10px 15px;
-            border-radius: 20px;
-            position: relative;
-        }
-        .message.own .message-bubble {
-            background: #0084ff;
-            color: white;
-        }
-        .message:not(.own) .message-bubble {
-            background: white;
-            border: 1px solid #ddd;
-        }
-        .message-time {
-            font-size: 11px;
-            opacity: 0.7;
-            margin-top: 5px;
-        }
-        .chat-input {
-            display: flex;
-            padding: 15px;
-            background: white;
-            border-top: 1px solid #ddd;
-        }
-        .chat-input input {
-            flex: 1;
-            border: 1px solid #ddd;
-            border-radius: 25px;
-            padding: 10px 20px;
-            outline: none;
-            margin-right: 10px;
-        }
-        .chat-input button {
-            background: #0084ff;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 45px;
-            height: 45px;
-            cursor: pointer;
-            font-size: 18px;
-        }
-        .chat-input button:hover {
-            background: #0070d2;
-        }
-    </style>
-</head>
-<body>
-    <div class="chat-container">
-        <div class="chat-header">
-            Weekly Completion Tracker – Chat
-        </div>
-        <div class="chat-messages" id="chatMessages"></div>
-        <div class="chat-input">
-            <input
-                type="text"
-                id="messageInput"
-                placeholder="Type a message..."
-                autocomplete="off"
-            >
-            <button onclick="sendMessage()">➤</button>
-        </div>
-    </div>
-
-    <script>
-        const chatMessages = document.getElementById('chatMessages');
-        const messageInput = document.getElementById('messageInput');
-
-        function addMessage(text, isOwn = false) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message' + (isOwn ? ' own' : '');
-
-            const time = new Date().toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-
-            messageDiv.innerHTML = `
-                <div class="avatar">${isOwn ? 'You' : 'Bot'}</div>
-                <div class="message-bubble">
-                    <div>${text}</div>
-                    <div class="message-time">${time}</div>
-                </div>
-            `;
-
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function sendMessage() {
-            const text = messageInput.value.trim();
-            if (text === '') return;
-
-            addMessage(text, true);
-            messageInput.value = '';
-
-            // Simulated bot response
-            setTimeout(() => {
-                const responses = [
-                    'Got it!',
-                    'Nice progress!',
-                    'Tell me more about this task.',
-                    'Logged for this week.',
-                    'Thanks for the update.'
-                ];
-                const response = responses[Math.floor(Math.random() * responses.length)];
-                addMessage(response, false);
-            }, 800);
-        }
-
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-
-        // Initial welcome message
-        addMessage('Hi! Use this chat to jot thoughts or notes about your weekly completion tracker.', false);
-    </script>
-</body>
-</html>
+            border-ra
