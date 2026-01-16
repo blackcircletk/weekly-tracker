@@ -55,4 +55,124 @@
         .message-bubble {
             max-width: 70%;
             padding: 10px 15px;
-            border-ra
+            border-radius: 20px;
+            position: relative;
+            background: white;
+            border: 1px solid #ddd;
+        }
+        .message-username {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .message-time {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 5px;
+            text-align: right;
+        }
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #ddd;
+        }
+        .chat-input input {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            padding: 10px 20px;
+            outline: none;
+            margin-right: 10px;
+        }
+        .chat-input button {
+            background: #0084ff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .chat-input button:hover {
+            background: #0070d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            Weekly Completion Tracker – Shared Chat
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input">
+            <input
+                type="text"
+                id="messageInput"
+                placeholder="Type a message..."
+                autocomplete="off"
+            >
+            <button id="sendButton">➤</button>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+
+        function addMessage(text, username) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+
+            const initials = username
+                .split(' ')
+                .map(p => p[0]?.toUpperCase())
+                .join('')
+                .slice(0, 2) || '?';
+
+            const time = new Date().toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            messageDiv.innerHTML = `
+                <div class="avatar">${initials}</div>
+                <div class="message-bubble">
+                    <div class="message-username">${username}</div>
+                    <div>${text}</div>
+                    <div class="message-time">${time}</div>
+                </div>
+            `;
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+
+            const username = prompt('Enter your username for this message:');
+            if (!username || !username.trim()) {
+                return; // Cancel send if no username
+            }
+
+            addMessage(text, username.trim());
+            messageInput.value = '';
+            messageInput.focus();
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Optional welcome message
+        addMessage('Welcome! Anyone can post here. Each message is signed with a username you enter.', 'System');
+    </script>
+</body>
+</html>
