@@ -483,9 +483,22 @@
             hour12: false,
             timeZone: timezone === "local" ? undefined : timezone
         };
-        return new Intl.DateTimeFormat(undefined, opts).format(date);
+            const tz = getTimezoneAbbr();
+    const formatted = new Intl.DateTimeFormat(undefined, opts).format(date);
+    return tz ? formatted + " " + tz : formatted;new Intl.DateTimeFormat(undefined, opts).format(date);
     }
 
+
+      function getTimezoneAbbr() {
+    if (timezone === "local") return "";
+    const tzMap = {
+      "America/New_York": "EST",
+      "America/Chicago": "CST",
+      "America/Denver": "MST",
+      "America/Los_Angeles": "PST"
+    };
+    return tzMap[timezone] || timezone.split("/").pop();
+  }
     function formatDate(date) {
         if (!date) return "--";
         const opts = {
@@ -505,7 +518,9 @@
             hour12: true,
             timeZone: timezone === "local" ? undefined : timezone
         };
-        return new Intl.DateTimeFormat(undefined, opts).format(date);
+            const tz = getTimezoneAbbr();
+    const formatted = new Intl.DateTimeFormat(undefined, opts).format(date);
+    return tz ? formatted + " " + tz : formatted;new Intl.DateTimeFormat(undefined, opts).format(date);
     }
 
     function getTimePeriod(date) {
@@ -1083,6 +1098,7 @@ const now = new Date();
 
 </body>
 </html>
+
 
 
 
