@@ -454,6 +454,17 @@
     let burnupChart = null;
 
     // === UTILITY FUNCTIONS ===
+    
+    function getTimezoneLabel() {
+  const tzNames = {
+    'local': 'Local Time',
+    'America/New_York': 'EST',
+    'America/Chicago': 'CST',
+    'America/Denver': 'MST',
+    'America/Los_Angeles': 'PST'
+  };
+  return ` (${tzNames[timezone] || timezone})`;
+}
 
     function parseCheckpointString(str) {
         if (!str) return NaN;
@@ -1095,6 +1106,7 @@ const now = new Date();
 
 </body>
 </html>
+
 
 
 
